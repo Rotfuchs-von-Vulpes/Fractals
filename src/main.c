@@ -28,7 +28,6 @@ const char *initShaderSource =
 		"uniform vec2 iMouse;\n"
 		"uniform vec2 iMove;\n"
 		"uniform int iMode;\n"
-		"in vec4 gl_FragCoord;\n"
 		"out vec4 frag_color;\n"
 		"#define E 2.71828182845904523536028747135266250\n"
 		"#define ESCAPE 1000.\n"
@@ -64,33 +63,16 @@ const char *initShaderSource =
 		"vec2 fractal_f(vec2 z,vec2 c){\n"
 		" return %s;\n"
 		"}\n"
-		"#if 1\n"
-		"#define DO_LOOP(name)\\\n"
-		"float smooth_i;\\\n"
-		"for(i=0;i<ESCAPE;++i){\\\n"
-		" vec2 ppz=pz;\\\n"
-		" pz=z;\\\n"
-		" z=name(z,c);\\\n"
-		" if(dot(z,z)>ESCAPE){"
-		"		const float mod = sqrt(dot(z, z));\\\n"
-		"		smooth_i = float(i) - log2(max(1.0f, log2(mod)));\\\n"
-		"		break;\\\n"
-		" }\\\n"
-		" ;\\\n"
-		" "
-		"}\n"
-		"#else\n"
 		"#define DO_LOOP(name)\\\n"
 		"float smooth_i;\\\n"
 		"for(i=0;i<ESCAPE;++i){\\\n"
 		" z=name(z,c);\\\n"
-		" if(dot(z,z)>ESCAPE){"
-		"		const float mod = sqrt(dot(z, z));\\\n"
+		" if(dot(z,z)>ESCAPE){\\\n"
+		"		float mod = sqrt(dot(z, z));\\\n"
 		"		smooth_i = float(i) - log2(max(1.0f, log2(mod)));\\\n"
 		"		break;\\\n"
 		" }\\\n"
 		"}\n"
-		"#endif\n"
 		"vec3 gradient(float n){\n"
 		" float div=1.f/ESCAPE;\n"
 		" float red=10.f*n*div;\n"
@@ -102,7 +84,7 @@ const char *initShaderSource =
 		" vec2 pz=z;\n"
 		" int i;\n"
 		" DO_LOOP(fractal_f);\n"
-		" if (smooth_i) {\n"
+		" if (smooth_i > 0.0) {\n"
 		"  return gradient(smooth_i);"
 		" }\n"
 		" return gradient(i);\n"
@@ -741,7 +723,9 @@ void reset(GLFWwindow *window)
 char finalShaderSource[5000];
 
 void compileShader(void)
-{
+{;
+	char infoLog[512];
+
 	glDeleteProgram(shaderProgram);
 	// vertex shader
 	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -751,9 +735,13 @@ void compileShader(void)
 	shaderProgram = glCreateProgram();
 	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
 	glCompileShader(vertexShader);
+	glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+	printf("%s\n", infoLog);
 	// fragment shader
 	glShaderSource(fragmentShader, 1, &finalShaderSourceTmp, NULL);
 	glCompileShader(fragmentShader);
+	glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+	printf("%s\n", infoLog);
 	// link shaders
 	glAttachShader(shaderProgram, vertexShader);
 	glLinkProgram(shaderProgram);

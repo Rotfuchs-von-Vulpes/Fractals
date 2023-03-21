@@ -84,7 +84,7 @@ const char *initShaderSource =
 		" vec2 pz=z;\n"
 		" int i;\n"
 		" DO_LOOP(fractal_f);\n"
-		" if (smooth_i > 0.0) {\n"
+		" if (i < ESCAPE) {\n"
 		"  return gradient(smooth_i);"
 		" }\n"
 		" return gradient(i);\n"
